@@ -1,0 +1,44 @@
+services:
+
+  spark:
+    image: apache/spark:latest
+    container_name: spark_container
+
+    ports:
+      - "8080:8080"
+      - "4040:4040"
+
+    volumes:
+      - ./data:/data
+      - ./spark_jobs:/spark_jobs
+      - ./output:/output
+
+  jupyter:
+    image: jupyter/pyspark-notebook
+    container_name: jupyter_container
+
+    ports:
+      - "8888:8888"
+
+    volumes:
+      - ./data:/home/jovyan/data
+      - ./spark_jobs:/home/jovyan/work
+      - ./output:/home/jovyan/output
+
+  airflow:
+    image: apache/airflow:2.9.1
+    container_name: airflow_container
+
+    ports:
+      - "8081:8080"
+
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./spark_jobs:/spark_jobs
+      - ./data:/data
+      - ./output:/output
+
+    command: standalone
