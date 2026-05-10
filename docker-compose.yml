@@ -5,7 +5,6 @@ services:
     container_name: spark_container
 
     ports:
-      - "8080:8080"
       - "4040:4040"
 
     volumes:
@@ -26,14 +25,17 @@ services:
       - ./output:/home/jovyan/output
 
   airflow:
-    image: apache/airflow:2.9.1
+    image: apache/airflow:2.9.1-python3.12
     container_name: airflow_container
+
+    user: "0:0"
 
     ports:
       - "8081:8080"
 
     environment:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
     volumes:
       - ./airflow/dags:/opt/airflow/dags
@@ -41,4 +43,10 @@ services:
       - ./data:/data
       - ./output:/output
 
-    command: standalone
+    command: >
+      bash -c "
+      apt-get update &&
+      apt-get install -y openjdk-17-jdk &&
+      su airflow -c 'pip install pyspark pandas==2.2.2' &&
+      airflow standalone
+      "
